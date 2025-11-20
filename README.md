@@ -9,6 +9,6 @@ Students are expected to:
 Student Info
 =========================
 
-* Student Name: USTH ICT1
-* Student ID: Not-Vietnamese
+* Student Name: Dang Thu Huyen
+* Student ID: 22BA113165
 * Student Group ID: Not-for-now
