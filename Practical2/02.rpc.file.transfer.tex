@@ -1,0 +1,90 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{hyperref}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    stringstyle=\color{red},
+    commentstyle=\color{green!60!black},
+    breaklines=true,
+    frame=single,
+    numbers=left
+}
+
+\title{Practical Work 2: RPC File Transfer}
+\author{Name: [Dang Thu Huyen] \\ ID: [22BA13165] \\ Class: Cybersecurity - USTH}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+In this practical work, I upgraded the file transfer system from raw TCP sockets to \textbf{Remote Procedure Call (RPC)}. I utilized Python's built-in \texttt{xmlrpc} library, which implements the XML-RPC standard. [cite_start]This approach abstracts the networking details, allowing the client to invoke functions on the server directly[cite: 36, 37].
+
+\section{RPC Service Design}
+The RPC service is designed around a single remote procedure named \texttt{upload\_file}.
+\begin{itemize}
+    \item \textbf{Input:} Takes \texttt{filename} (string) and \texttt{binary\_data} (XML-RPC Binary object).
+    \item \textbf{Process:} The server receives the binary object, extracts raw bytes, and writes them to the disk.
+    \item \textbf{Output:} Returns a status string ("Success" or "Error").
+\end{itemize}
+
+[cite_start]Unlike the previous TCP implementation, there is no need to manually handle headers or handshake protocols, as the RPC middleware handles serialization (marshaling) automatically[cite: 30].
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{rpc_design.png}
+    \caption{RPC Service Design (Function Call Flow)}
+    \label{fig:design}
+\end{figure}
+
+\section{System Organization}
+The system follows the standard RPC architecture described in the lecture (Slide 30).
+\begin{itemize}
+    \item \textbf{Client Side:} Uses a \texttt{ServerProxy} as a stub to marshal parameters (filename, file content) into XML format.
+    \item \textbf{Server Side:} Uses \texttt{SimpleXMLRPCServer} to unmarshal requests and execute the registered function.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{rpc_arch.png}
+    \caption{RPC System Organization (Stubs and Skeleton)}
+    \label{fig:arch}
+\end{figure}
+
+\section{Implementation}
+
+\subsection{Server Implementation}
+The server registers the function and listens for calls.
+\begin{lstlisting}
+# Code snippet: Server registering the function
+def receive_file(filename, binary_data):
+    with open(filename, "wb") as handle:
+        handle.write(binary_data.data) # Extract raw bytes
+    return "Success"
+
+server.register_function(receive_file, "upload_file")
+\end{lstlisting}
+
+\subsection{Client Implementation}
+[cite_start]The client wraps the file content in a Binary object to handle non-text data correctly[cite: 31].
+\begin{lstlisting}
+# Code snippet: Client calling the remote method
+proxy = xmlrpc.client.ServerProxy("http://localhost:8000/")
+with open("input.txt", "rb") as f:
+    binary_data = xmlrpc.client.Binary(f.read())
+    
+proxy.upload_file("input.txt", binary_data)
+\end{lstlisting}
+
+\section{Conclusion}
+The migration to RPC significantly reduced code complexity compared to raw sockets. [cite_start]The communication details (TCP connection, buffering) are successfully hidden by the RPC middleware[cite: 44].
+
+\end{document}
