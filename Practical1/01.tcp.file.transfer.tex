@@ -1,0 +1,92 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    stringstyle=\color{red},
+    commentstyle=\color{green!60!black},
+    breaklines=true,
+    frame=single,
+    numbers=left
+}
+
+\title{Practical Work 1: TCP File Transfer}
+\author{Name: [Dang Thu Huyen] \\ ID: [22BA13165] \\ Class: Cybersecurity - USTH}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+The goal of this practical work is to implement a 1-1 file transfer system over TCP/IP using CLI. The system consists of a server (receiver) and a client (sender) utilizing socket programming.
+
+\section{Protocol Design}
+To ensure reliable file transfer, I designed a simple application-layer protocol:
+\begin{enumerate}
+    \item \textbf{Handshake:} The Client sends the filename and file size first (format: \texttt{filename|size}).
+    \item \textbf{Acknowledgment:} The Server validates the metadata and sends back an "OK" signal.
+    \item \textbf{Data Transmission:} The Client sends the raw file bytes in chunks (4096 bytes).
+    \item \textbf{Termination:} The connection closes after the file size matches the received bytes.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{protocol_diagram.png}
+    \caption{File Transfer Protocol Design}
+    \label{fig:protocol}
+\end{figure}
+
+\section{System Organization}
+The system architecture follows the Client-Server model described in the lecture (Slide 68):
+\begin{itemize}
+    \item \textbf{Server:} Creates a socket, binds to an IP/Port, listens for connections, and accepts the client.
+    \item \textbf{Client:} Creates a socket and connects to the server's IP/Port.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{system_arch.png}
+    \caption{System Organization (Client-Server Session)}
+    \label{fig:arch}
+\end{figure}
+
+\section{Implementation}
+Below are the code snippets for the implementation in Python.
+
+\subsection{Server Side}
+\begin{lstlisting}
+file_info = conn.recv(1024).decode('utf-8')
+filename, filesize = file_info.split('|')
+conn.sendall(b"OK")
+
+with open(filename, 'wb') as f:
+    while total_received < int(filesize):
+        data = conn.recv(4096)
+        if not data: break
+        f.write(data)
+\end{lstlisting}
+
+\subsection{Client Side}
+\begin{lstlisting}
+client_socket.sendall(f"{filename}|{filesize}".encode())
+ack = client_socket.recv(1024)
+
+if ack == b"OK":
+    with open(filename, 'rb') as f:
+        while True:
+            data = f.read(4096)
+            if not data: break
+            client_socket.sendall(data)
+\end{lstlisting}
+
+\section{Conclusion}
+The system successfully transfers text and binary files over the local network. Error handling for connection loss and file existence was implemented.
+
+\end{document}
