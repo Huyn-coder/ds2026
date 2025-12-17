@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-[CHAPTER 4] MapReduce Log Analytics
+ MapReduce Log Analytics
 Analyzes proxy access logs using MapReduce pattern
 
 Input: access.log
