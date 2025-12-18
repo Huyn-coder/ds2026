@@ -1,0 +1,73 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\geometry{a4paper, margin=1in}
+
+\title{Practical Work 7: Server-Side Sudoku on GAE}
+\author{Group 16}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Overview}
+This practical work demonstrates the deployment of a Java-based web application on Google App Engine (GAE). Unlike static implementations, our group focused on a server-side rendering approach where the Sudoku puzzle logic is handled by a Java Servlet before being sent to the client.
+
+\section{Architecture & Implementation}
+The application follows the Model-View-Controller (MVC) pattern adapted for a simple Servlet container.
+
+\subsection{File Structure}
+\begin{itemize}
+    \item \texttt{WEB-INF/appengine-web.xml}: Configures the GAE runtime environment (Java 8).
+    \item \texttt{com.usth.lab7.GameController.java}: The Servlet acting as the Controller. It initializes the game matrix.
+    \item \texttt{index.jsp}: The View component that dynamically renders the HTML table based on data received from the Controller.
+\end{itemize}
+
+\subsection{Key Code Snippets}
+\textbf{Controller Logic (Java):}
+The puzzle is defined as a 2D array and attached to the request object.
+\begin{lstlisting}[language=Java, basicstyle=\ttfamily\small, breaklines=true, frame=single]
+public class GameController extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) 
+    throws ServletException, IOException {
+        int[][] puzzle = { {5, 3, 0...}, ... }; // Matrix initialization
+        req.setAttribute("puzzle", puzzle);
+        req.getRequestDispatcher("/index.jsp").forward(req, resp);
+    }
+}
+\end{lstlisting}
+
+\textbf{View Logic (JSP):}
+We use Java scriptlets to iterate through the matrix and render inputs.
+\begin{lstlisting}[language=HTML, basicstyle=\ttfamily\small, breaklines=true, frame=single]
+<% for(int i=0; i<9; i++) { %>
+    <tr>
+    <% for(int j=0; j<9; j++) { 
+         int val = puzzle[i][j]; %>
+        <td>
+            <input value="<%= (val!=0) ? val : "" %>" />
+        </td>
+    <% } %>
+    </tr>
+<% } %>
+\end{lstlisting}
+
+\section{Task Distribution}
+The project workload was divided to ensure parallel development:
+
+\begin{description}
+    \item[Student A:] Responsible for the Java backend logic (\texttt{GameController.java}) and data structure design.
+    \item[Student B:] Responsible for the frontend integration (\texttt{index.jsp}), CSS styling, and JavaScript validation hooks.
+    \item[Student C:] Managed the Google Cloud Platform configuration, deployment scripts, and writing the \LaTeX\ report.
+\end{description}
+
+\section{Conclusion}
+The application was successfully deployed to the Google Cloud Platform. The server-side rendering approach ensures that the initial game state is consistently managed by the backend, fulfilling the requirements of a cloud-based web application.
+
+\end{document}
